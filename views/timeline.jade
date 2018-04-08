@@ -1,0 +1,174 @@
+doctype html
+html(lang='en')
+  head
+    meta(http-equiv='content-type', content='text/html; charset=UTF-8')
+    meta(charset='utf-8')
+    title VAAD SAMVAAD
+    meta(name='viewport', content='width=device-width, initial-scale=1, maximum-scale=1')
+    link(href='assets/css/bootstrap.css', rel='stylesheet')
+    //if lt IE 9
+      script(src='//html5shim.googlecode.com/svn/trunk/html5.js')
+    link(href='assets/css/facebook.css', rel='stylesheet')
+  body
+    .wrapper
+      .box
+        .row.row-offcanvas.row-offcanvas-left
+          // sidebar
+          #sidebar.column.col-sm-2.col-xs-1.sidebar-offcanvas
+            ul.nav
+              li
+                a.visible-xs.text-center(href='#', data-toggle='offcanvas')
+                  i.glyphicon.glyphicon-chevron-right
+            ul#lg-menu.nav.hidden-xs
+              li.active
+                a(href='/timeline')
+                  i.glyphicon.glyphicon-list-alt
+                  |  Timeline
+              li
+                a(href='/home')
+                  i.glyphicon.glyphicon-connect
+                  |  Messages
+            ul#sidebar-footer.list-unstyled.hidden-xs
+              li
+                a(href='#')
+                  h3 VAAD SAMVAAD
+                  i.glyphicon.glyphicon-heart-empty
+                  |  Vinayak Trivedi
+            // tiny only nav
+            ul#xs-menu.nav.visible-xs
+              li
+                a.text-center(href='/timeline')
+                  i.glyphicon.glyphicon-list-alt
+                  | Timeline
+              li
+                a.text-center(href='/home')
+                  i.glyphicon.glyphicon-comment
+                  | Messages
+          // /sidebar
+          // main right col
+          #main.column.col-sm-10.col-xs-11
+            // top nav
+            .navbar.navbar-blue.navbar-static-top
+              .navbar-header
+                button.navbar-toggle(type='button', data-toggle='collapse', data-target='.navbar-collapse')
+                  span.sr-only Toggle
+                  span.icon-bar
+                  span.icon-bar
+                  span.icon-bar
+                a.navbar-brand.logo(href='/home') V
+              nav.collapse.navbar-collapse(role='navigation')
+                form#search_form.navbar-form.navbar-left
+                  .input-group.input-group-sm(style='max-width:360px;')
+                    input#srch-term.form-control(placeholder='Search for new people', name='srch-term', type='text')
+                    .input-group-btn
+                      button.btn.btn-default(type='submit')
+                        i.glyphicon.glyphicon-search
+                ul.nav.navbar-nav
+                  li
+                    a(href='/home')
+                      i.glyphicon.glyphicon-home
+                      |  Timeline
+                  li
+                    a.dropdown-toggle(href='#', data-toggle='dropdown')
+                      i.glyphicon.glyphicon-comment
+                      | Messages
+                      span#top_message(style='color:red; font-size:16px;')
+                    ul.dropdown-menu(style='background-color:#F2ECEC;maximum-height:450px; overflow-y:auto;')
+                      #load_message
+                      li
+                        a(href='#')
+                          p#load_more_messages(style='width:320px;')  Load More messages
+                      li
+                        a(href='/messages')
+                          p(style='width:320px;')  See All messages
+                  li
+                    a.dropdown-toggle(href='#', data-toggle='dropdown')
+                      i.glyphicon.glyphicon-comment
+                      |  Notifications
+                      span#top_notification(style='color:red; font-size:16px;')
+                    ul.dropdown-menu(style='background-color:#F2ECEC;maximum-height:450px; overflow-y:auto;')
+                      #load_notifications
+                      li
+                        a(href='/notifications')
+                          p(style='width:320px;')  See All Notifications
+                ul.nav.navbar-nav.navbar-right
+                  li.dropdown
+                    a.dropdown-toggle(href='#', data-toggle='dropdown')
+                      i.glyphicon.glyphicon-user
+                    ul.dropdown-menu
+                      li
+                        a(href='/signout') Signout
+                      li
+                        a(href='#') Settings
+            // /top nav
+            .padding
+              .full.col-sm-9
+                #hidden.row
+                  .col-sm-3(style='background-color:#E1D7D7')
+                    .input-group.input-group-sm(style='max-width:360px;')
+                      ul#search_results
+                // content
+                .row
+                  // main col left
+                  .col-sm-8
+                    .well
+                      form#status_form.form-horizontal(role='form', action='/update', method='POST', enctype='multipart/form-data')
+                        h4 What's New
+                        .form-group(style='padding:14px;')
+                          textarea#status.form-control(placeholder='Update your status', name='status')
+                          input(type='file', name='status_pic')
+                        button.btn.btn-primary.pull-right(type='submit') Post
+                    #mainarea.panel.panel-default
+                  // main col right
+                  .col-sm-4
+                    .panel.panel-default(style=' overflow-y:auto;')
+                      #activity_list.panel-body
+                // /row
+                hr
+                h4.text-center
+                  button#load_more_stories.btn.btn-primary(type='button')  Load More Stories
+                h4.text-center
+                  a(href='#', target='ext') VAAD SAMVAAD
+                hr
+              // /col-9
+            // /padding
+          // /main
+    // post modal
+    #postModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
+      .modal-dialog
+        .modal-content
+          .modal-header
+            button.close(type='button', data-dismiss='modal', aria-hidden='true') �
+            | 					Update Status
+          .modal-body
+            form.form.center-block
+              .form-group
+                textarea.form-control.input-lg(autofocus='', placeholder='What do you want to share?')
+          .modal-footer
+            div
+              button.btn.btn-primary.btn-sm(data-dismiss='modal', aria-hidden='true') Post
+              ul.pull-left.list-inline
+                li
+                  a(href='')
+                    i.glyphicon.glyphicon-upload
+                li
+                  a(href='')
+                    i.glyphicon.glyphicon-camera
+                li
+                  a(href='')
+                    i.glyphicon.glyphicon-map-marker
+    script(type='text/javascript', src='assets/js/jquery.js')
+    script(type='text/javascript', src='assets/js/bootstrap.js')
+    script(src='./socket.io.js')
+    script(src='./timeline.js')
+    script(type='text/javascript').
+      $(document).ready(function() {
+      $('[data-toggle=offcanvas]').click(function() {
+      $(this).toggleClass('visible-xs text-center');
+      $(this).find('i').toggleClass('glyphicon-chevron-right glyphicon-chevron-left');
+      $('.row-offcanvas').toggleClass('active');
+      $('#lg-menu').toggleClass('hidden-xs').toggleClass('visible-xs');
+      $('#xs-menu').toggleClass('visible-xs').toggleClass('hidden-xs');
+      $('#btnShow').toggle();
+      });
+      });

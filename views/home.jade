@@ -1,0 +1,31 @@
+doctype html
+html
+  head
+    link(href='./messenger.css', rel='stylesheet')
+    link(href='https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css', rel='stylesheet')
+    link(href='./stylesheets/bootstrap.css', rel='stylesheet')
+  body
+    .content.container.container-fluid.bootstrap.snippets
+      .col-sm-3.col-lg-4.col-xs-4(style='width:30%; float:left; overflow-y:auto;')
+        .decor-default.chat(style=' outline: none;')
+          #friends_list.chat-users
+          #users_list.chat-users
+      .col-sm-9.col-xs-8.col-lg-8.chat(style='width:70%; float:right; overflow-y:auto;')
+        .decor-default
+          #msgs_coming.chat-body(style='height:70%;')
+          #seen.time
+          .answer-add
+            form#msg_form
+              input#msg.form-control(type='textarea', placeholder='Type a message', style='width:70%;height:100%;')
+              button.btn.btn-primary(type='submit', style='height:80%;width:20%;') Send
+    .container
+      .row
+        form.form-signin(action='/upload', method='POST', enctype='multipart/form-data')
+          input.form-control(type='file', name='profile_pic')
+          button.btn.btn-lg.btn-primary.btn-block(type='submit') Upload Profile pic
+      .row
+        button#signout.btn.btn-lg.btn-primary.btn-block Signout
+    script(src='https://ajax.googleapis.com/ajax/libs/jquery/3.0.0/jquery.min.js')
+    script(type='text/javascript', src='./socket.io.js')
+    script(type='text/javascript', src='./clients.js')
+    script(type='text/javascript', src='./js/bootstrap.js')

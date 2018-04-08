@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link href="./messenger.css" rel="stylesheet">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="./stylesheets/bootstrap.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="content container container-fluid bootstrap snippets">
+      <div style="width:30%; float:left; overflow-y:auto;" class="col-sm-3 col-lg-4 col-xs-4">
+        <div style=" outline: none;" class="decor-default chat">
+          <div id="friends_list" class="chat-users"></div>
+          <div id="users_list" class="chat-users"></div>
+        </div>
+      </div>
+      <div style="width:70%; float:right; overflow-y:auto;" class="col-sm-9 col-xs-8 col-lg-8 chat">
+        <div class="decor-default">
+          <div id="msgs_coming" style="height:70%;" class="chat-body">   </div>
+            <div id="seen" class="time"></div>
+            <div class="answer-add">
+              <form id="msg_form"><input type='textarea' class='form-control' id='msg' placeholder='Type a message' style='width:70%;height:100%;'> <button type='submit' style='height:80%;width:20%;' class='btn btn-primary'>Send</button></form>
+            </div>
+        </div>
+      </div>
+    </div>
+    <div class="container">
+      <div class="row">
+        <form action="/upload" method="POST" enctype="multipart/form-data" class="form-signin">
+          <input type="file" name="profile_pic" class="form-control">
+          <button type="submit" class="btn btn-lg btn-primary btn-block">Upload Profile pic</button>
+        </form>
+      </div>
+      <div class="row"><button id="signout" class="btn btn-lg btn-primary btn-block">Signout</button></div>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.0.0/jquery.min.js"></script>
+    <script type="text/javascript" src="./socket.io.js"></script>
+    <script type="text/javascript" src="./clients.js"></script>
+    <script type="text/javascript" src="./js/bootstrap.js"></script>
+  </body>
+</html>
