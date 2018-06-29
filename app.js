@@ -20,7 +20,7 @@ app.set('view engine', 'jade');
 mongoose.connect('mongodb://localhost/messapp');
 var bodyParser=require('body-parser');
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true  }));
+app.use(bodyParser.urlencoded({ keepExtensions: true, extended: false  }));
 app.use(cookieparser());
 var storep=new MemoryStore();
 app.use(session({
@@ -32,14 +32,6 @@ app.use(session({
     maxAge: 1000 * 24 * 60
   }
 }));
-var x=new Date();
-var func=function(x){
-  x=x+1;
-  return x;
-}
-var a=12;
-console.log(func(a));
-console.log(a);
 app.use(express.static(__dirname + '/views'));
 app.use(passport.initialize());
 app.use(passport.session());

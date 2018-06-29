@@ -6,8 +6,8 @@ html(lang='en')
     title VAAD SAMVAAD
     meta(name='viewport', content='width=device-width, initial-scale=1, maximum-scale=1')
     link(href='assets/css/bootstrap.css', rel='stylesheet')
-    //if lt IE 9
-      script(src='//html5shim.googlecode.com/svn/trunk/html5.js')
+    //
+      if lt IE 9script(src='//html5shim.googlecode.com/svn/trunk/html5.js')
     link(href='assets/css/facebook.css', rel='stylesheet')
   body
     .wrapper
@@ -28,6 +28,11 @@ html(lang='en')
                 a(href='/home')
                   i.glyphicon.glyphicon-connect
                   |  Messages
+            br
+            br
+            br
+            h3  Online People 
+            ul#onlinePeople
             ul#sidebar-footer.list-unstyled.hidden-xs
               li
                 a(href='#')
@@ -112,11 +117,9 @@ html(lang='en')
                   // main col left
                   .col-sm-8
                     .well
-                      form#status_form.form-horizontal(role='form', action='/update', method='POST', enctype='multipart/form-data')
-                        h4 What's New
-                        .form-group(style='padding:14px;')
-                          textarea#status.form-control(placeholder='Update your status', name='status')
-                          input(type='file', name='status_pic')
+                      form#status_form.form-horizontal(action='/updatestatus', method='POST', enctype='multipart/form-data')
+                        input#status.form-control(type='text', placeholder='Update your status', name='status')
+                        input(type='file', name='status_pic')
                         button.btn.btn-primary.pull-right(type='submit') Post
                     #mainarea.panel.panel-default
                   // main col right
@@ -139,7 +142,7 @@ html(lang='en')
         .modal-content
           .modal-header
             button.close(type='button', data-dismiss='modal', aria-hidden='true') �
-            | 					Update Status
+            |           Update Status
           .modal-body
             form.form.center-block
               .form-group

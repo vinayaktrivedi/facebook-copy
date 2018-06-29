@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <title>VAAD SAMVAAD</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href="assets/css/bootstrap.css" rel="stylesheet">
+    <!--if lt IE 9script(src='//html5shim.googlecode.com/svn/trunk/html5.js')
+    -->
+    <link href="assets/css/facebook.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="wrapper">
+      <div class="box">
+        <div class="row row-offcanvas row-offcanvas-left">
+          <!-- sidebar-->
+          <div id="sidebar" class="column col-sm-2 col-xs-1 sidebar-offcanvas">
+            <ul class="nav">
+              <li><a href="#" data-toggle="offcanvas" class="visible-xs text-center"><i class="glyphicon glyphicon-chevron-right"></i></a></li>
+            </ul>
+            <ul id="lg-menu" class="nav hidden-xs">
+              <li class="active"><a href="/timeline"><i class="glyphicon glyphicon-list-alt"></i> Timeline</a></li>
+              <li><a href="/home"><i class="glyphicon glyphicon-connect"></i> Messages</a></li>
+            </ul>
+            <br> <br> <br> <h3> Hello online </h3>
+            <ul id="onlinePeople">
+            </ul>
+            <ul id="sidebar-footer" class="list-unstyled hidden-xs">
+              <li><a href="#">
+                  <h3>VAAD SAMVAAD</h3><i class="glyphicon glyphicon-heart-empty"></i> Vinayak Trivedi</a></li>
+            </ul>
+            <!-- tiny only nav-->
+            <ul id="xs-menu" class="nav visible-xs">
+              <li><a href="/timeline" class="text-center"><i class="glyphicon glyphicon-list-alt"></i>Timeline</a></li>
+              <li><a href="/home" class="text-center"><i class="glyphicon glyphicon-comment"></i>Messages</a></li>
+            </ul>
+          </div>
+          <!-- /sidebar-->
+          <!-- main right col-->
+          <div id="main" class="column col-sm-10 col-xs-11">
+            <!-- top nav-->
+            <div class="navbar navbar-blue navbar-static-top">
+              <div class="navbar-header">
+                <button type="button" data-toggle="collapse" data-target=".navbar-collapse" class="navbar-toggle"><span class="sr-only">Toggle</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a href="/home" class="navbar-brand logo">V</a>
+              </div>
+              <nav role="navigation" class="collapse navbar-collapse">
+                <form id="search_form" class="navbar-form navbar-left">
+                  <div style="max-width:360px;" class="input-group input-group-sm">
+                    <input id="srch-term" placeholder="Search for new people" name="srch-term" type="text" class="form-control">
+                    <div class="input-group-btn">
+                      <button type="submit" class="btn btn-default"><i class="glyphicon glyphicon-search"></i></button>
+                    </div>
+                  </div>
+                </form>
+                <ul class="nav navbar-nav">
+                  <li><a href="/home"><i class="glyphicon glyphicon-home"></i> Timeline</a></li>
+                  <li><a href="#" data-toggle="dropdown" class="dropdown-toggle"><i class="glyphicon glyphicon-comment"></i>Messages<span id="top_message" style="color:red; font-size:16px;"></span></a>
+                    <ul style="background-color:#F2ECEC;maximum-height:450px; overflow-y:auto;" class="dropdown-menu">
+                      <div id="load_message"></div>
+                      <li><a href="#">
+                          <p id="load_more_messages" style="width:320px;"> Load More messages</p></a></li>
+                      <li><a href="/messages">
+                          <p style="width:320px;"> See All messages</p></a></li>
+                    </ul>
+                  </li>
+                  <li><a href="#" data-toggle="dropdown" class="dropdown-toggle"><i class="glyphicon glyphicon-comment"></i> Notifications<span id="top_notification" style="color:red; font-size:16px;"></span></a>
+                    <ul style="background-color:#F2ECEC;maximum-height:450px; overflow-y:auto;" class="dropdown-menu">
+                      <div id="load_notifications"></div>
+                      <li><a href="/notifications">
+                          <p style="width:320px;"> See All Notifications</p></a></li>
+                    </ul>
+                  </li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                  <li class="dropdown"><a href="#" data-toggle="dropdown" class="dropdown-toggle"><i class="glyphicon glyphicon-user"></i></a>
+                    <ul class="dropdown-menu">
+                      <li><a href="/signout">Signout</a></li>
+                      <li><a href="#">Settings</a></li>
+                    </ul>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+            <!-- /top nav-->
+            <div class="padding">
+              <div class="full col-sm-9">
+                <div id="hidden" class="row">
+                  <div style="background-color:#E1D7D7" class="col-sm-3">
+                    <div style="max-width:360px;" class="input-group input-group-sm">
+                      <ul id="search_results"></ul>
+                    </div>
+                  </div>
+                </div>
+                <!-- content-->
+                <div class="row">
+                  <!-- main col left-->
+                  <div class="col-sm-8">
+                    <div class="well">
+                      <form id="status_form" action="/updatestatus" method="POST" enctype="multipart/form-data" class="form-horizontal">
+                        <input id="status" type="text" placeholder="Update your status" name="status" class="form-control">
+                        <input type="file" name="status_pic">
+                        <button type="submit" class="btn btn-primary pull-right">Post</button>
+                      </form>
+                    </div>
+                    <div id="mainarea" class="panel panel-default"></div>
+                  </div>
+                  <!-- main col right-->
+                  <div class="col-sm-4">
+                    <div style=" overflow-y:auto;" class="panel panel-default">
+                      <div id="activity_list" class="panel-body"></div>
+                    </div>
+                  </div>
+                </div>
+                <!-- /row-->
+                <hr>
+                <h4 class="text-center">
+                  <button id="load_more_stories" type="button" class="btn btn-primary"> Load More Stories</button>
+                </h4>
+                <h4 class="text-center"><a href="#" target="ext">VAAD SAMVAAD</a></h4>
+                <hr>
+              </div>
+              <!-- /col-9-->
+            </div>
+            <!-- /padding-->
+          </div>
+          <!-- /main-->
+        </div>
+      </div>
+    </div>
+    <!-- post modal-->
+    <div id="postModal" tabindex="-1" role="dialog" aria-hidden="true" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" data-dismiss="modal" aria-hidden="true" class="close">�</button>					Update Status
+          </div>
+          <div class="modal-body">
+            <form class="form center-block">
+              <div class="form-group">
+                <textarea autofocus="" placeholder="What do you want to share?" class="form-control input-lg"></textarea>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <div>
+              <button data-dismiss="modal" aria-hidden="true" class="btn btn-primary btn-sm">Post</button>
+              <ul class="pull-left list-inline">
+                <li><a href=""><i class="glyphicon glyphicon-upload"></i></a></li>
+                <li><a href=""><i class="glyphicon glyphicon-camera"></i></a></li>
+                <li><a href=""><i class="glyphicon glyphicon-map-marker"></i></a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script type="text/javascript" src="assets/js/jquery.js"></script>
+    <script type="text/javascript" src="assets/js/bootstrap.js"></script>
+    <script src="./socket.io.js"></script>
+    <script src="./timeline.js"></script>
+    <script type="text/javascript">
+      $(document).ready(function() {
+      $('[data-toggle=offcanvas]').click(function() {
+      $(this).toggleClass('visible-xs text-center');
+      $(this).find('i').toggleClass('glyphicon-chevron-right glyphicon-chevron-left');
+      $('.row-offcanvas').toggleClass('active');
+      $('#lg-menu').toggleClass('hidden-xs').toggleClass('visible-xs');
+      $('#xs-menu').toggleClass('visible-xs').toggleClass('hidden-xs');
+      $('#btnShow').toggle();
+      });
+      });
+    </script>
+  </body>
+</html>

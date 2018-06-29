@@ -7,6 +7,7 @@ var friend=require('../models/friend');
 var user=require('../models/user');
 var bodyParser=require('body-parser');
 var sockets={};
+var imagename;
 var authenticated={};
 var reverse={};
 var chat={};
@@ -22,16 +23,19 @@ var isAuthenticated = function (req, res, next) {
     var string=ip+agent;
     authenticated[string]=req.user.username;
 		return next();
-
   }
-	res.redirect('/');
+	res.redirect('/timeline');
+}
+var makename = function (req,res,next){
+	imagename = req.user.username + new Date();
+	return next();
 }
 var istrue=function(req,res,next){
   if(!req.isAuthenticated())
   return next();
-  res.redirect('/home');
+  res.redirect('/timeline');
 }
-module.exports=function(passport,io){
+module.exports=function(passport,io) {
   router.get('/',istrue,function(req,res){
    res.render('index');
   });
@@ -49,10 +53,18 @@ module.exports=function(passport,io){
   });
   var storage=multer.diskStorage(
     {destination:function(req,file,cb){
-      cb(null,'/home/vinayak/Desktop/interiit backend/myself/views/images/');
+      cb(null,'/home/vinayak/Desktop/facebook_copy/myself/views/images/');
     },
     filename:function(req,file,cb){
       cb(null,req.user.username+'.jpg');
+    }
+  });
+  var storagenew = multer.diskStorage(
+    {destination:function(req,file,cb){
+      cb(null,'/home/vinayak/Desktop/facebook_copy/myself/views/images/');
+    },
+    filename:function(req,file,cb){
+      cb(null,imagename);
     }
   });
   var filter=function(req,file,cb){
@@ -66,13 +78,14 @@ module.exports=function(passport,io){
       return cb(new Error('Max Limit crossed!'),false);
     }
       cb(null,true);
-    }
+  }
+  var uploadnew=multer({storage:storagenew,fileFilter:filter,limits:size});
   var upload=multer({storage:storage,fileFilter:filter,limits:size});
   router.post('/upload',isAuthenticated, upload.single('profile_pic'),function(req,res){
-      res.redirect('/home');
+      res.redirect('/timeline');
   });
   router.post('/signup',passport.authenticate('signup',{
-    successRedirect: '/home',
+    successRedirect: '/timeline',
    failureRedirect: '/signup'
   }));
   router.post('/sendmsg',isAuthenticated,function(req,res){
@@ -138,6 +151,7 @@ module.exports=function(passport,io){
       io.to(sockets[req.user.username]).emit('newmsg',{'data':msg1,'first':id,'second':req.user.username});
     res.end('success');
   });
+
   io.sockets.on('connection',function(socket){
    var agent=socket.handshake.headers['user-agent'];
    var ip= socket.request.connection.remoteAddress;
@@ -186,18 +200,25 @@ module.exports=function(passport,io){
 		 }
 	 });
 	 socket.on('disconnect',function(data){
-		 console.log('hello');
+		 
 		 if(!socket.id){
 			 return;
 		 }
 		 var user=reverse[socket.id];
+		 friend.find({'username':user}).select('friends').exec(function(err,result){
+		 	if(result[0] != undefined)
+		 		result = result[0]['friends'];
+		 	result.forEach(function(value){
+		 		if(sockets[value] != undefined){
+		 			io.to(sockets[value]).emit('offline',{'user':user});
+		 		}
+		 	});
+		 });
 		 delete sockets[user];
 		 delete reverse[socket.id];
 	 });
   });
-	router.get('/images',isAuthenticated,function(req,res){
 
-	});
   router.get('/home',isAuthenticated,function(req,res){
 			var options = {
 			maxAge: 1000 * 60 * 15, // would expire after 15 minutes
@@ -206,6 +227,7 @@ module.exports=function(passport,io){
 			res.cookie('user',req.user.username,options);
 			res.render('home');
   });
+
 	router.post('/fill',isAuthenticated,function(req,res){
 		var query=friend.find({'username':req.user.username}).select('friends');
 		var sql=user.find().select('username');
@@ -220,6 +242,11 @@ module.exports=function(passport,io){
 			}
 		});
 	});
+
+
+	/* Function working fine */
+
+
   router.post('/friend',isAuthenticated,function(req,res){
     var id=req.body.id;
     if(id==req.user.username){
@@ -282,6 +309,10 @@ module.exports=function(passport,io){
      res.send('success');
    }
   });
+
+  /* Function working fine */
+
+
   router.post('/getmsg',isAuthenticated,function(req,res){
 		var a;
 		var seen;
@@ -318,9 +349,13 @@ module.exports=function(passport,io){
 
 
   });
+
 	router.get('/timeline',isAuthenticated,function(req,res){
 		res.render('timeline');
 	});
+
+	/* Function working fine */
+
 	var post_find=function(answers,callback){
 		var timestamp=new Date();
 		posts.find({_id:answers['post_id']}).exec(function(err,resp){
@@ -330,11 +365,11 @@ module.exports=function(passport,io){
 			x['love_more']=0;
 			x['username']=answers['username'];
 			x['type']=answers['type'];
-			x['_id']=answers['_id'];
+			x['_id']=resp['_id'];
 			timestamp=answers['timestamp'];
 			x['timestamp']=answers['timestamp'];
 			x['owner']=resp['username'];
-			x['image']=resp['image'];
+			x['images']=resp['image'];
 			x['status']=resp['status'];
 			x['love']=resp['love'];
 			x['haha']=resp['haha'];
@@ -350,34 +385,46 @@ module.exports=function(passport,io){
 
 		});
 	}
-	var message_find=function(){
 
-	}
+	/* Function working fine */
+
 	router.post('/timeline',isAuthenticated,function(req,res){
 		var q=friend.find({username:req.user.username});
 		var timestamp=new Date();
+		var onlineHtml = '';
 		q.exec(function(err,result){
 			if(result[0]!=undefined){
 			var friends=result[0]['friends'];
-			var query=activity.find({'username':{$in:friends},'timestamp':{$lt:timestamp}}).sort({'timestamp':-1}).limit(10);
-			var tempfunc=function(req,answers,callback,secondcallback){
+			friends.forEach(function(value){
+				if(sockets[value] != undefined){
+					onlineHtml += '<h5 id="user_'+value+'">'+value+'</h5>';
+					io.sockets.to(sockets[value]).emit('online',{'user':req.user.username});
+				}
+			});
+			var query=activity.find({'username':{$in:friends},'timestamp':{$lt:timestamp}}).sort({'timestamp':1}).limit(10);
+			var tempfunc=function(req,answers,callback,secondcallback,onlineHtml){
 				var html=new Array;
 				var timestamp=new Date();
 				if(answers!=undefined){
+					var j=0;
 					for(var i=0;i<answers.length;i++){
 						var value=answers[i];
 						post_find(value,function(data,r_time){
 							html.push(data);
 							timestamp=r_time;
+							j++;
 						});
 					}
-				callback(req,html,timestamp,secondcallback);
+					setTimeout(function(){
+						callback(req,html,timestamp,secondcallback,onlineHtml);
+					},1000);
+
 			}
 			};
-			var fn2=function(req,html,timestamp,callback){
+			var fn2=function(req,html,timestamp,callback,onlineHtml){
 				var msgs=new Array;
 				var msgstamp=new Date();
-				messages.find({username:req.user.username,'timestamp':{$lt:msgstamp}}).sort({'timestamp':-1}).limit(5).exec(function(err,results){
+				messages.find({username:req.user.username,'timestamp':{$lt:msgstamp}}).sort({'timestamp':1}).limit(5).exec(function(err,results){
 					if(results!=undefined){
 						console.log('yes');
 						for(var i=0;i<results.length;i++){
@@ -394,36 +441,51 @@ module.exports=function(passport,io){
 					else{
 						console.log('problem');
 					}
-					callback(html,req,msgs,timestamp);
+					callback(html,req,msgs,timestamp,onlineHtml);
 				});
 			};
-			var fn3=function(html,req,msgs,timestamp){
+			var fn3=function(html,req,msgs,timestamp,onlineHtml){
 						var respond={};
 						respond['timestamp']=timestamp;
 						respond['html']=html;
 						respond['user']=req.user.username;
 						respond['messages']=msgs;
+						respond['onlineHtml'] = onlineHtml;
 						console.log(respond);
 						res.send(respond);
 			}
 			query.exec(function(err,answers){
-				tempfunc(req,answers,fn2,fn3);
+				tempfunc(req,answers,fn2,fn3,onlineHtml);
 				});
 			}
 			});
 	});
-	router.post('/comment',isAuthenticated,function(req,res){
+
+	/* Function working fine */
+
+
+	router.post('/comment',isAuthenticated,function(req,response){
+		console.log('received');
 		var post_id=req.body.id;
 		var comment=req.body.comment;
+		console.log(comment);
 		var comment_id;
 		var friends;
+		console.log(post_id);
 		friend.find({username:req.user.username}).select('friends').exec(function(err,result){
 			friends=result[0]['friends'];
-			posts.find({_id:post_id}).select('username').exec(function(err,res){
+			console.log(friends);
+			posts.find({_id:post_id}).exec(function(err,res){
+				console.log('res'+res[0]);
+				if(res[0]!=undefined){
+
 				if(friends.indexOf(res[0]['username'])==-1){
-					res.end('error');
+					console.log('fatal');
+					response.end('error');
 				}
+
 				else{
+					console.log('another');
 					var x=new comments();
 					x.post_id=post_id;
 					x.description=comment;
@@ -431,7 +493,8 @@ module.exports=function(passport,io){
 					x.username=res[0]['username'];
 					x.name=req.user.username;
 					x.save(function(err,id){
-						comment_id=id._id;
+						comment_id=id['_id'];
+						console.log('done');
 					});
 					var n=new activity();
 					n.username=req.user.username;
@@ -443,7 +506,7 @@ module.exports=function(passport,io){
 					io.sockets.emit('newcomment',{'postid':post_id,'comment':comment,'user':req.user.username,comment_id:comment_id});
 					friends.forEach(function(value){
 						if(sockets[value]!=undefined){
-							io.to(sockets[value]).emit('activity',{'act':req.user.username+"commnted on "+res[0]['username']+"'s Post",'_id':post_id});
+							io.to(sockets[value]).emit('activity',{'act':req.user.username+" commnted on "+res[0]['username']+"'s Post",'_id':post_id});
 						}
 					});
 
@@ -452,11 +515,11 @@ module.exports=function(passport,io){
 						for(var i=0;i<ans.length;i++){
 							var temp=ans[i]['name'];
 							if(key[temp]==undefined){
-								if(sockets[temp]!=undefined&&temp!=res[0]['username']){
-									io.to(sockets[temp]).emit('newnotification',{id:post_id,noti:req.user.username+"also commnted on "+res[0]['username']+"'s Post",'_id':post_id});
+								if(sockets[temp]!=undefined && temp!=res[0]['username'] && temp!=req.user.username){
+									io.to(sockets[temp]).emit('newnotification',{id:post_id,noti:req.user.username+" also commnted on "+res[0]['username']+"'s Post",'_id':post_id});
 								}
 								if(res[0]['username']!=temp){
-									key[temp]=TRUE;
+									key[temp] = true;
 									var s=req.user.username+"also commnted on "+res[0]['username']+"'s Post";
 									notifications.find({username:temp}).exec(function(err,r){
 										if(r[0]==undefined){
@@ -482,10 +545,7 @@ module.exports=function(passport,io){
 						}
 					});
 					var main=res[0]['username'];
-					if(sockets[main]!=undefined){
-					io.to(sockets[main]).emit(newnotification,{id:post_id,noti:req.user.username+"also commnted on your post"});
-				}
-				var s=req.user.username+"also commnted on your post";
+				var s=req.user.username+" also commnted on your post";
 				notifications.find({username:main}).exec(function(err,r){
 					if(r[0]==undefined){
 						var x=new notifications();
@@ -503,146 +563,130 @@ module.exports=function(passport,io){
 						notifications.update({username:main},{notifications:noti},{multi:true},function(err){
 						});
 					}
-					if(sockets[main]!=undefined){
+					if(sockets[main]!=undefined && main != req.user.username){
 						io.to(sockets[main]).emit('newnotification',{id:post_id,user:req.user.username,noti:req.user.username+" commented on your post"});
 					}
 				});
 				}
+			}
 			});
 		});
 	});
+
+	/* Function working fine */
+
+
 	router.post('/react',isAuthenticated,function(req,res){
 			var love=req.body.love;
 			var haha=req.body.haha;
+			var react;
+			if(love == true){
+				react= 'love';
+			}
+			else{
+				react = 'haha';
+			}
+			console.log(haha+love);
+			console.log(react);
 			var post_id=req.body.id;
-			posts.find({id:post}).exec(function(err,results){
+			console.log(post_id);
+			posts.find({_id:post_id}).exec(function(err,results){
 				var lovelist=results[0]['love'];
 				var hahalist=results[0]['haha'];
-				if(love){
-					if(lovelist.indexOf(req.user.username)==-1){
-						var x=lovelist.push(req.user.username);
-						posts.update({_id:post_id},{love:x},{multi:true},function(err){
+				if(lovelist.indexOf(req.user.username)==-1 && hahalist.indexOf(req.user.username)==-1){
+					console.log('reached');
+					if(love == true){
+						lovelist.push(req.user.username);
+						posts.update({_id:post_id},{love:lovelist},{multi:true},function(err){
 						});
 					}
 					else{
-						res.end('error');
+						hahalist.push(req.user.username);
+						posts.update({_id:post_id},{haha:hahalist},{multi:true},function(err){
+						});
 					}
-					io.sockets.emit('newreact',{'love':TRUE,'haha':FALSE,'post_id':post_id});
-					friend.find({username:req.user.username}).select('friends').exec(function(err,friends){
-						friends=friends[0]['friends'];
+					var n=new activity();
+					n.username=req.user.username;
+					n.post_id=post_id;
+					n.type=req.user.username+" reacted "+react+" on "+results[0]['username']+"'s post";
+					n.save(function(err){
+
+					});
+					io.sockets.emit('newreact',{'react':react,'post_id':post_id});
+					friend.find({'username':req.user.username}).select('friends').exec(function(err,friends){
+						friends = friends[0]['friends'];
 						friends.forEach(function(value){
-							if(sockets[value]!=undefined){
-								io.to(sockets[value]).emit('activity',{'act':req.user.username+"reacted love on "+results[0]['username']+"'s Post",'_id':post_id});
+							if(sockets[value] != undefined){
+								console.log('socket for new activity found');
+								io.to(sockets[value]).emit('activity',{'act':req.user.username+" reacted "+react+" on "+results[0]['username']+"'s Post",'_id':post_id});
 							}
 						});
-						if(sockets[results[0]['username']]!=undefined){
-							io.to(sockets[results[0]['username']]).emit('newnotification',{id:post_id,user:req.user.username,noti:req.user.username+"reacted love on your post"});
+						if(sockets[results[0]['username']]!=undefined && results[0]['username'] != req.user.username){
+							io.to(sockets[results[0]['username']]).emit('newnotification',{'id':post_id,'user':req.user.username,'noti':req.user.username+" reacted "+react+" on your post"});
 						}
-						var s=req.user.username+" reacted love on your post";
-						var main=results[0]['username'];
-						notifications.find({username:main}).exec(function(err,r){
-							if(r[0]==undefined){
-								var x=new notifications();
-								x.username=main;
-								var arr=new Array;
-								arr.push(s);
-								x.notifications=arr;
-								x.save(function(err,cb){
+					
+					});
+					var s=req.user.username+" reacted "+react+" on your post";
+					var main=results[0]['username'];
+					notifications.find({username:main}).exec(function(err,r){
+						if(r[0]==undefined){
+							var x=new notifications();
+							x.username=main;
+							var arr=new Array;
+							arr.push(s);
+							x.notifications=arr;
+							x.save(function(err,cb){
 
-								});
-							}
-							else {
-								var noti=r[0]['notifications'];
-								noti.push(s);
-								notifications.update({username:main},{notifications:noti},{multi:true},function(err){
-								});
-							}
-							if(sockets[main]!=undefined){
-								io.to(sockets[main]).emit('newnotification',{id:post_id,user:req.user.username,noti:req.user.username+" commented on your post"});
-							}
-						});
-						var n=new activity();
-						n.username=req.user.username;
-						n.post_id=post_id;
-						n.type=req.user.username+" reacted love on "+results[0]['username']+"'s post";
-						n.save(function(err){
-
-						});
+							});
+						}
+						else {
+							var noti=r[0]['notifications'];
+							noti.push(s);
+							notifications.update({username:main},{notifications:noti},{multi:true},function(err){
+							});
+						}
 					});
 				}
-				else if(haha){
-					if(hahalist.indexOf(req.user.username)==-1){
-						var x=hahalist.push(req.user.username);
-						posts.update({_id:post_id},{haha:x},{multi:true},function(err){
-						});
-					}
-					else{
-						res.end('error');
-					}
-					io.sockets.emit('newreact',{'haha':TRUE,'love':FALSE,'post_id':post_id});
-					friend.find({username:req.user.username}).select('friends').exec(function(err,friends){
-						var friends=friends[0]['friends'];
-						friends.forEach(function(value){
-							if(sockets[value]!=undefined){
-								io.to(sockets[value]).emit('activity',{'act':req.user.username+"reacted haha on "+results[0]['username']+"'s Post",'_id':post_id});
-							}
-						});
-						if(sockets[results[0]['username']]!=undefined){
-							io.to(sockets[results[0]['username']]).emit('newnotification',{id:post_id,user:req.user.username,noti:req.user.username+"reacted haha on your post"});
-						}
-						var s=req.user.username+" reacted haha on your post";
-						var main=results[0]['username'];
-						notifications.find({username:main}).exec(function(err,r){
-							if(r[0]==undefined){
-								var x=new notifications();
-								x.username=main;
-								var arr=new Array;
-								arr.push(s);
-								x.notifications=arr;
-								x.save(function(err,cb){
-
-								});
-							}
-							else {
-								var noti=r[0]['notifications'];
-								noti.push(s);
-								notifications.update({username:main},{notifications:noti},{multi:true},function(err){
-								});
-							}
-							if(sockets[main]!=undefined){
-								io.to(sockets[main]).emit('newnotification',{id:post_id,user:req.user.username,noti:req.user.username+" commented on your post"});
-							}
-						});
-						var n=new activity();
-						n.username=req.user.username;
-						n.post_id=post_id;
-						n.type=req.user.username+" reacted haha on "+results[0]['username']+"'s post";
-						n.save(function(err){
-
-						});
-					});
+				else{
+					res.end('error');
 				}
-				res.end('success');
 			});
 	});
+
+	/* Function working fine */
+
 	router.post('/loadcomment',isAuthenticated,function(req,res){
 		var commentstamp=req.body.commentstamp;
+		console.log('I am'+commentstamp);
 		var html=new Array;
-		var post_id=req.body.postid;
-		var newstamp;
-		comments.find({post_id:post_id,timestamp:{$lt:commentstamp}}).limit(10).exec(function(err,result){
-			for(var i=0;i<result.length;i++){
-			var x={};
-			newstamp=result[i]['timestamp'];
-			x['user']=result[i]['name'];
-			x['comment']=result[i]['description'];
-			x['comment_id']=result[i]['_id'];
-			html[i]=x;
-		}
-		res.send({comments:html,timestamp:newstamp});
+		var post_id=req.body.post_id;
+		var newstamp=new Date();
+		comments.find({post_id:post_id,timestamp:{$lt:commentstamp}}).sort({'timestamp':-1}).limit(10).exec(function(err,result){
+
+			result.forEach(function(value){
+				var x={};
+				newstamp=value['timestamp'];
+				x['user']=value['name'];
+				x['comment']=value['description'];
+				x['comment_id']=value['_id'];
+				html.push(x);
+			});
+			if(result[0] == undefined){
+				console.log('undef');
+				newstamp = null;
+			}
+
+		setTimeout(function(){
+			console.log(html);
+			var t={};
+			t['comments']=html;
+			t['timestamp']=newstamp;
+			res.send(t);
+		},50);
 	});
 	});
-	router.post('/reply',isAuthenticated,function(req,res){
+
+	router.post('/reply',isAuthenticated,function(req,response){
 		var comment_id=req.body.id;
 		var reply=req.body.reply;
 		var friends;
@@ -650,7 +694,7 @@ module.exports=function(passport,io){
 			friends=result[0]['friends'];
 			comments.find({_id:comment_id}).exec(function(err,res){
 				if(friends.indexOf(res[0]['username'])==-1){
-					res.end('error');
+					response.end('error');
 				}
 				else{
 					var replies=res[0]['replies'];
@@ -658,7 +702,7 @@ module.exports=function(passport,io){
 					comments.update({_id:comment_id},{replies:replies},{multi:true},function(err){
 						if(err){
 							console.log(err);
-							res.end('error');
+							response.end('error');
 						}
 					});
 					var n=new activity();
@@ -682,7 +726,7 @@ module.exports=function(passport,io){
 					for(var i=0;i<ans.length;i++){
 						var temp=ans[i].split(":")[0];
 						if(key[temp]==undefined){
-							if(sockets[temp]!=undefined&&temp!=main&&temp!=passive){
+							if(sockets[temp] != undefined && temp != main && temp != passive){
 								io.to(sockets[temp]).emit('newnotification',{id:post_id,user:req.user.username,noti:req.user.username+"also replied to a comment on "+main+"'s Post"});
 							}
 							if(main!=temp && temp!=passive){
@@ -729,7 +773,7 @@ module.exports=function(passport,io){
 							notifications.update({username:main},{notifications:noti},{multi:true},function(err){
 							});
 						}
-							if(sockets[main]!=undefined){
+							if(sockets[main]!=undefined && main != req.user.username){
 								io.to(sockets[main]).emit('newnotification',{id:post_id,user:req.user.username,noti:req.user.username+"also replied to a comment on your status"});
 							}
 					});
@@ -751,7 +795,7 @@ module.exports=function(passport,io){
 								notifications.update({username:passive},{notifications:noti},{multi:true},function(err){
 								});
 							}
-							if(sockets[passive]!=undefined){
+							if(sockets[passive]!=undefined && passive != req.user.username){
 								io.to(sockets[passive]).emit('newnotification',{id:post_id,user:req.user.username,noti:req.user.username+"also replied to your comment on "+main+"'s post"});
 							}
 					});
@@ -759,120 +803,97 @@ module.exports=function(passport,io){
 			});
 		});
 	});
+
+	/* Function working fine */
+
 	router.post('/fillmsg',isAuthenticated,function(req,res){
 			var msgstamp=req.body.msgstamp;
-			var messages=new Array;
-		messages.find({username:req.body.username,timestamp:{$lt:msgstamp}}).sort({timestamp:-1}).limit(10).exec(function(err,results){
-			for(var i=0;i<5;i++){
-				if(results[i]==undefined){
-					break;
-				}
+			console.log(msgstamp);
+			var messagesArray = new Array;
+			messages.find({username:req.body.username,timestamp:{$lt:msgstamp}}).sort({timestamp:1}).limit(5).exec(function(err,results){
+
+			results.forEach(function(value){
 				var x={};
-				x['friend']=results[i]['seconduser'];
-				x['seen']=results[i]['seen_now'];
-				var msg=results[i]['message'];
-				var l=msg.length;
+				x['friend']=value['seconduser'];
+				x['seen']=value['seen_now'];
+				var msg=value['message'];
+				var l = msg.length;
 				x['message']=msg[l-1].split(":")[1];
-				x['timestamp']=results[i]['timestamp'];
-				messages[i]=x;
+				x['timestamp']=value['timestamp'];
+				messagesArray.push(x);
+			});
+			if(results[0] == undefined){
+				messagesArray = null;
 			}
-			res.send(messages);
+			setTimeout(function(){
+				res.send(messagesArray);
+			},100);
+
 		});
 	});
+
+
 	router.post('/load',isAuthenticated,function(req,res){
 		var mainstamp=req.body.mainstamp;
-		var timestamp;
+		var timestamp = null;
 		var html=new Array;
 		var q=friend.find({username:req.user.username});
 		q.exec(function(err,result){
 		var friends=result[0]['friends'];
-		var query=activity.find({'username':{$in:friends},'timestamp':{$lt:mainstamp}}).sort({'timestamp':-1}).limit(10);
+		var query=activity.find({'username':{$in:friends},'timestamp':{$lt:mainstamp}}).sort({'timestamp':1}).limit(10);
 		query.exec(function(err,answers){
-			for(var i=0;i<10;i++){
-				if(answers[i]==undefined){
-					break;
-				}
-				timestamp=answers[i]['timestamp'];
-				posts.find({_id:answers[i]['post_id']}).exec(function(err,resp){
-					var x={};
-					x['haha_more']=0;
-					x['love_more']=0;
-					x['username']=answers[i]['username'];
-					x['type']=answers[i]['type'];
-					x['_id']=answers[i]['_id'];
-					x['timestamp']=answers[i]['timestamp'];
-					x['owner']=resp['username'];
-					x['image']=resp['image'];
-					x['status']=resp['status'];
-					x['love']=resp['love'];
-					x['haha']=resp['haha'];
-					if(x['haha'].length>10){
-						x['haha_more']=x['haha'].length-10;
-						x['haha']=x['haha'].splice(0,10);
-					}
-					if(x['love'].length>10){
-						X['love_more']=x['love'].length-10;
-						x['love']=x['love'].splice(0,10);
-					}
-					html[i]=x;
+			answers.forEach(function(value){
+				post_find(value,function(data,time){
+					timestamp=time;
+					html.push(data);
 				});
-			}
-			res.send({timestamp:timestamp,html:html,user:req.user.username});
+			});
+			setTimeout(function(){
+				res.send({timestamp:timestamp,html:html,user:req.user.username});
+				console.log(timestamp);
+			},100);
+
 	});
 
 });
 });
-	router.post('/update',isAuthenticated,function(req,res){
+
+	/* Function working fine */
+
+
+	router.post('/updatestatus',isAuthenticated, makename, uploadnew.single('status_pic'), function(req,res){
 		var statustext=req.body.status;
-		var image=new Date()+'_'+req.user.username;
-		var storage=multer.diskStorage(
-			{destination:function(req,file,cb){
-				cb(null,'/home/vinayak/Desktop/interiit backend/myself/views/images/');
-			},
-			filename:function(req,file,cb){
-				cb(null,image+'.jpg');
-			}
-		});
-		var filter=function(req,file,cb){
-			if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
-				return cb(new Error('Only image files are allowed!'), false);
-		}
-		cb(null, true);
-		};
-		var size=function(req,file,cb){
-			if(file.size>204800){
-				return cb(new Error('Max Limit crossed!'),false);
-			}
-				cb(null,true);
-			}
-		var upload=multer({storage:storage,fileFilter:filter,limits:size});
-		if(req.body.status_pic){
-		var x=upload.single('status_pic');
-	}
+		console.log(JSON.stringify(req.body)+' avadeka dabra');
 		x=new posts();
 		x.username=req.user.username;
-		x.image=image;
+		x.image=imagename;
 		x.status=statustext;
 		x.love=new Array;
 		x.haha=new Array;
 		x.save(function(err,e){
 			var post_id=e['_id'];
-			var y=new activity();
-			y.username=req.user.username;
-			y.post_id=post_id;
+			var y = new activity();
+			y.username = req.user.username;
+			y.post_id = post_id;
 			y.type=req.user.username+" updated their status!";
 			y.save(function(err){
 			});
 			friend.find({username:req.user.username}).exec(function(err,results){
-				var friends=results[0]['friends'];
+				var friends = [];
+				if(results[0] != undefined){
+					 friends=results[0]['friends'];
+				}
 				friends.forEach(function(value){
 					if(sockets[value]!=undefined){
 						io.to(sockets[value]).emit('activity',{'act':req.user.username+" updated their status!",'_id':post_id});
 					}
 				});
+				res.redirect('/home');
 			});
 		});
 	});
+
+
 	router.post('/loadreply',isAuthenticated,function(req,res){
 		var comment_id=req.body.id;
 		comments.find({_id:comment_id}).select('replies').exec(function(err,result){
@@ -880,23 +901,34 @@ module.exports=function(passport,io){
 		});
 	});
 
+	/* Function working fine */
+
 	router.post('/search',isAuthenticated,function(req,res){
 			var term=req.body.term;
 			var html='';
-			user.find({username:'/.*'+term+'.*/'}).select('username').limit(10).exec(function(err,results){
-				for(var i=0;i<10;i++){
-					if(results[i]==undefined){
-						break;
+			user.find({username:new RegExp("^"+term+"(.*)")}).select('username').limit(5).exec(function(err,results){
+				if(results[0] == undefined){
+					html = '<li> No results found </li>';
+				}
+				else{
+					for(var i=0;i<results.length;i++){
+						html+= '<li> <a href="#"> <p>'+results[i]['username']+'</p> </a> </li>';
 					}
-					html+= '<li> <a href="#"> <p>'+results[i]['username']+'</p> </a>';
 				}
 				res.send(html);
 			});
 	});
-	router.get('/viewpost',isAuthenticated,function(req,res){
+
+	/* Function working fine */
+
+	router.post('/viewpost',isAuthenticated,function(req,res){
 		var id=req.body.post_id;
-		res.end('Welcome');
+		console.log(req.body);
+		res.end('Welcome'+id);
 	});
+
+	/* Function working fine */
+
   router.get('/signout',function(req,res){
     var agent=req.header('user-agent');
     var ip=req.ip;

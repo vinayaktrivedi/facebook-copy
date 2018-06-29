@@ -13,15 +13,6 @@ html, body {
 a {
   color:#222222;
 }
-.comment_list{
-  display:none;
-}
-.reply_list{
-  display:none;
-}
-#hidden{
-  display:none;
-}
 a:hover {
   text-decoration:none;
 }
