@@ -24,15 +24,15 @@
             <a class="navbar-brand" href="#">VAAD SAMVAAD</a>
           </div>
 		  <div class="collapse navbar-collapse">
-           	<form class="navbar-form navbar-right" id="header-form" role="form">
+           	<form class="navbar-form navbar-right" action="/login" method="POST" id="header-form" role="form">
 				  <div class="lt-left">
 					  <div class="form-group">
-						<label for="exampleInputEmail2">Email or Phone</label>
-						<input type="email" class="form-control input-sm" id="exampleInputEmail2" placeholder="Email or Phone">
+						<label for="exampleInputEmail2">Username</label>
+						<input type="text" class="form-control input-sm" id="exampleInputEmail2" name="username" placeholder="Username">
 					  </div>
 					  <div class="form-group">
 						<label for="exampleInputPassword2">Password</label>
-						<input type="password" class="form-control input-sm" id="exampleInputPassword2" placeholder="Password">
+						<input type="password" name="password" class="form-control input-sm" id="exampleInputPassword2" placeholder="Password">
 					  </div>
 					  <div class="checkbox">
 						<label>
@@ -57,39 +57,20 @@
 				<img src="assets/img/background.png" class="img-responsive" />
 			</div>
 			<div class="col-md-5">
-			<form action="#" method="post" class="form" role="form">
+			<form action="/signup" method="post" class="form" role="form">
 			<legend><a>Create your account</a></legend>
             <h4>It's free and always will be.</h4>
             <div class="row">
                 <div class="col-xs-6 col-md-6">
-                    <input class="form-control input-lg" name="firstname" placeholder="First Name" type="text" autofocus />
+                    <input class="form-control input-lg" name="name" placeholder="First Name" type="text" autofocus />
                 </div>
                 <div class="col-xs-6 col-md-6">
-                    <input class="form-control input-lg" name="lastname" placeholder="Last Name" type="text" />
+                    <input class="form-control input-lg" name="last" placeholder="Last Name" type="text" />
                 </div>
             </div>
-            <input class="form-control input-lg" name="youremail" placeholder="Your Email" type="email" />
-            <input class="form-control input-lg" name="reenteremail" placeholder="Re-enter Email" type="email" />
+            <input class="form-control input-lg" name="email" placeholder="Your Email" type="email" />
+            <input class="form-control input-lg" name="username" placeholder="Username" type="text" />
             <input class="form-control input-lg" name="password" placeholder="New Password" type="password" />
-            <label for="">
-                Birth Date</label>
-            <div class="row">
-                <div class="col-xs-4 col-md-4">
-                    <select class="form-control input-lg">
-                        <option value="Month">Month</option>
-                    </select>
-                </div>
-                <div class="col-xs-4 col-md-4">
-                    <select class="form-control input-lg">
-                        <option value="Day">Day</option>
-                    </select>
-                </div>
-                <div class="col-xs-4 col-md-4">
-                    <select class="form-control input-lg">
-                        <option value="Year">Year</option>
-                    </select>
-                </div>
-            </div>
             <label class="radio-inline">
                 <input type="radio" name="sex" id="inlineCheckbox1" value="male" />
                 Male

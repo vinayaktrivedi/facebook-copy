@@ -45,7 +45,7 @@ module.exports=function(passport,io) {
   }));
   router.get('/signup',function(req,res){
       if(!req.isAuthenticated()){
-      res.render('register');
+      res.render('index');
     }
       else {
       res.redirect('/');

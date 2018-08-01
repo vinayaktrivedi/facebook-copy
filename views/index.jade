@@ -1,18 +1,68 @@
-extends layout
-
-block content
-	div.container
-		div.row
-			div.col-sm-6.col-md-4.col-md-offset-4
-				h1.text-center.login-title Sign in to our Passport app
-					div.account-wall
-						img(class='profile-img', src='https://lh5.googleusercontent.com/-b0-k99FZlyE/AAAAAAAAAAI/AAAAAAAAAAA/eu7opA4byxI/photo.jpg?sz=120')
-						form(class='form-signin', action='/login', method='POST')
-							input(type='text', name='username' class='form-control', placeholder='Email',required, autofocus)
-							input(type='password', name='password' class='form-control', placeholder='Password', required)
-							button(class='btn btn-lg btn-primary btn-block', type='submit') Sign in
-							span.clearfix
-					a(href='/signup', class='text-center new-account') Create an account
-					#message
-					if message
-						h1.text-center.error-message #{message}
+doctype html
+html(lang='en')
+  head
+    meta(charset='utf-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    meta(name='description', content='')
+    meta(name='author', content='')
+    title VAAD SAMVAAD
+    link(href='assets/css/bootstrap.css', rel='stylesheet')
+    link(href='assets/css/sticky-footer.css', rel='stylesheet')
+    link(href='assets/css/custom.css', rel='stylesheet')
+  body
+    #wrap
+      .navbar.navbar-default.navbar-fixed-top
+        .container
+          .navbar-header
+            button.navbar-toggle(type='button', data-toggle='collapse', data-target='.navbar-collapse')
+              span.icon-bar
+              span.icon-bar
+              span.icon-bar
+            a.navbar-brand(href='#') VAAD SAMVAAD
+          .collapse.navbar-collapse
+            form#header-form.navbar-form.navbar-right(action='/login', method='POST', role='form')
+              .lt-left
+                .form-group
+                  label(for='exampleInputEmail2') Username
+                  input#exampleInputEmail2.form-control.input-sm(type='text', name='username', placeholder='Username')
+                .form-group
+                  label(for='exampleInputPassword2') Password
+                  input#exampleInputPassword2.form-control.input-sm(type='password', name='password', placeholder='Password')
+                .checkbox
+                  label
+                    input(type='checkbox')
+                    |  Remember me
+              .lt-right
+                button.login-btn(type='submit') Login
+      #home.container
+        .row
+          .col-md-7
+            h3.slogan
+              | VAAD SAMVAAD helps you connect and share with the people in your life.
+            img.img-responsive(src='assets/img/background.png')
+          .col-md-5
+            form.form(action='/signup', method='post', role='form')
+              legend
+                a Create your account
+              h4 It's free and always will be.
+              .row
+                .col-xs-6.col-md-6
+                  input.form-control.input-lg(name='name', placeholder='First Name', type='text', autofocus='')
+                .col-xs-6.col-md-6
+                  input.form-control.input-lg(name='last', placeholder='Last Name', type='text')
+              input.form-control.input-lg(name='email', placeholder='Your Email', type='email')
+              input.form-control.input-lg(name='username', placeholder='Username', type='text')
+              input.form-control.input-lg(name='password', placeholder='New Password', type='password')
+              label.radio-inline
+                input#inlineCheckbox1(type='radio', name='sex', value='male')
+                |                 Male
+              label.radio-inline
+                input#inlineCheckbox2(type='radio', name='sex', value='female')
+                |                 Female
+              br
+              span.help-block
+                | By clicking Create my account, you agree to our Terms and that you have read our Data Use Policy, including our Cookie Use.
+              button.btn.btn-lg.btn-primary.btn-block.signup-btn(type='submit')
+                | Create my account
+    script(src='assets/js/jquery.js')
+    script(src='assets/js/bootstrap.js')
